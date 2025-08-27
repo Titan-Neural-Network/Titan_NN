@@ -11,8 +11,13 @@ function initializeApp() {
     return admin.app();
   }
 
+  if (!process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    console.warn("Firebase service account credentials not found. Skipping Firebase initialization.");
+    return null;
+  }
+
   const cert = JSON.parse(
-    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64!, 'base64').toString('utf8')
+    Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8')
   );
 
   return admin.initializeApp({
@@ -21,12 +26,15 @@ function initializeApp() {
 }
 
 async function getDb() {
-  const app = await initializeApp();
+  const app = initializeApp();
+  if (!app) return null;
   return admin.firestore(app);
 }
 
-export async function getCredits() {
+export async function getCredits(): Promise<number> {
   const db = await getDb();
+  if (!db) return 0; // Return 0 credits if firebase is not initialized
+
   const docRef = db.collection(COLLECTION_ID).doc(CREDI_DOC_ID);
   const doc = await docRef.get();
 
@@ -40,6 +48,8 @@ export async function getCredits() {
 
 export async function decrementCredits() {
     const db = await getDb();
+    if (!db) return; // Do nothing if firebase is not initialized
+
     const docRef = db.collection(COLLECTION_ID).doc(CREDI_DOC_ID);
 
     const doc = await docRef.get();
