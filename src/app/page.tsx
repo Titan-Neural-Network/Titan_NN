@@ -348,6 +348,9 @@ export default function DocumentUploader() {
     setLoading(true);
     setShowUploader(true);
     setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
+
+    const analysisPromise = processDocument({ documentDataUri: dataUri });
+
     let currentStep = 0;
     const interval = setInterval(() => {
         setProcessingSteps(prevSteps => {
@@ -363,7 +366,7 @@ export default function DocumentUploader() {
                 clearInterval(interval);
                 (async () => {
                     try {
-                        const response = await processDocument({ documentDataUri: dataUri });
+                        const response = await analysisPromise;
                         setResult(response);
                     } catch (error) {
                         console.error(error);
