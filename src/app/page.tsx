@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Link from 'next/link';
 import {
   UploadCloud,
@@ -33,7 +33,6 @@ import {
   processDocument,
   type ProcessDocumentOutput,
 } from '@/ai/flows/document-processor';
-import { getCredits } from '@/services/credits';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge as BadgeComponent } from '@/components/ui/badge';
@@ -156,23 +155,6 @@ export default function DocumentUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialProcessingSteps);
   const [jobId, setJobId] = useState<string | null>(null);
-  const [credits, setCredits] = useState<number | null>(null);
-
-  const fetchCredits = async () => {
-    try {
-        const remaining = await getCredits();
-        setCredits(remaining);
-    } catch (error) {
-        console.error("Failed to fetch credits:", error);
-        // Set to 0 or some other default on error
-        setCredits(0);
-    }
-  };
-
-  useEffect(() => {
-    fetchCredits();
-  }, []);
-
 
   const runProcessingSimulation = () => {
         setLoading(true);
@@ -199,7 +181,6 @@ export default function DocumentUploader() {
                             try {
                                 const response = await processDocument({ documentDataUri: dataUri });
                                 setResult(response);
-                                await fetchCredits(); // Re-fetch credits after processing
                             } catch (error) {
                                 console.error(error);
                                 toast({
@@ -234,14 +215,6 @@ export default function DocumentUploader() {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (credits !== null && credits <= 0) {
-          toast({
-              variant: 'destructive',
-              title: 'No credits remaining.',
-              description: 'Please upgrade your plan to process more documents.',
-          });
-          return;
-      }
       setShowUploader(true);
       await processFile(file);
     }
@@ -252,14 +225,6 @@ export default function DocumentUploader() {
     event.stopPropagation();
     const file = event.dataTransfer.files?.[0];
     if (file) {
-       if (credits !== null && credits <= 0) {
-          toast({
-              variant: 'destructive',
-              title: 'No credits remaining.',
-              description: 'Please upgrade your plan to process more documents.',
-          });
-          return;
-      }
       setShowUploader(true);
       await processFile(file);
     }
@@ -278,14 +243,6 @@ export default function DocumentUploader() {
   };
 
   const handleBrowse = () => {
-    if (credits !== null && credits <= 0) {
-        toast({
-            variant: 'destructive',
-            title: 'No credits remaining.',
-            description: 'Please upgrade your plan to process more documents.',
-        });
-        return;
-    }
     fileInputRef.current?.click();
   };
 
@@ -332,7 +289,7 @@ export default function DocumentUploader() {
               </p>
             </div>
             <div className="flex gap-4 pt-4">
-              <Button onClick={handleBrowse} disabled={loading || (credits !== null && credits <= 0)}>
+              <Button onClick={handleBrowse} disabled={loading}>
                 <File className="mr-2" />
                 Browse Files
               </Button>
@@ -504,7 +461,7 @@ export default function DocumentUploader() {
                 Transform complex car purchase documents into clear, actionable insights. Our AI extracts key facts, identifies risks, and highlights what you need to do next.
               </p>
               <div className="mt-8 flex justify-center gap-4">
-                <Button size="lg" onClick={() => (credits !== null && credits > 0) ? setShowUploader(true) : toast({variant: 'destructive', title: 'No credits remaining.'})}>
+                <Button size="lg" onClick={() => setShowUploader(true)}>
                   <UploadCloud className="mr-2"/>
                   Upload Documents
                 </Button>
