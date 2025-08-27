@@ -321,7 +321,7 @@ function CameraComponent({
 }
 
 const CitationItem = ({ text, citation }: { text: string; citation: string }) => (
-  <div className="flex flex-col md:flex-row justify-between items-start md:items-center py-2 border-b last:border-b-0">
+    <div className="flex flex-col md:flex-row justify-between items-start md:items-center py-2 border-b last:border-b-0 gap-2">
     <p className="text-muted-foreground flex-1">{text}</p>
     <div className="text-muted-foreground mt-1 md:mt-0">
       <BadgeComponent variant="secondary" className="whitespace-nowrap">{citation}</BadgeComponent>
@@ -349,51 +349,55 @@ export default function DocumentUploader() {
     setShowUploader(true);
     setResult(null);
     setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
-  
+
     const analysisPromise = processDocument({ documentDataUri: dataUri });
-  
+
     let analysisResult: ProcessDocumentOutput | null = null;
     let analysisError: Error | null = null;
-  
+
     analysisPromise.then(response => {
       analysisResult = response;
     }).catch(error => {
       analysisError = error;
     });
-  
+
     let currentStep = 0;
     const interval = setInterval(() => {
-      setProcessingSteps(prevSteps => {
-        const newSteps = [...prevSteps];
-        if (currentStep < newSteps.length) {
-          if (currentStep > 0) {
-            newSteps[currentStep - 1].status = 'complete';
-          }
-          newSteps[currentStep].status = 'processing';
+        const allStepsComplete = currentStep >= initialProcessingSteps.length;
+        
+        if (analysisResult || analysisError || allStepsComplete) {
+            clearInterval(interval);
+            setLoading(false);
+
+            if (analysisResult) {
+                setResult(analysisResult);
+                setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
+            } else if (analysisError) {
+                console.error(analysisError);
+                toast({
+                    variant: 'destructive',
+                    title: 'An error occurred.',
+                    description: 'Failed to process the document. Please try again.',
+                });
+                resetState();
+            }
+            return;
         }
+
+        setProcessingSteps(prevSteps => {
+            const newSteps = [...prevSteps];
+            if (currentStep < newSteps.length) {
+                if (currentStep > 0) {
+                    newSteps[currentStep - 1].status = 'complete';
+                }
+                newSteps[currentStep].status = 'processing';
+            }
+            return newSteps;
+        });
+
         currentStep++;
-        return newSteps;
-      });
-  
-      if (analysisResult || analysisError || currentStep > initialProcessingSteps.length) {
-        clearInterval(interval);
-        setLoading(false);
-  
-        if (analysisResult) {
-          setResult(analysisResult);
-          setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
-        } else {
-          console.error(analysisError);
-          toast({
-            variant: 'destructive',
-            title: 'An error occurred.',
-            description: 'Failed to process the document. Please try again.',
-          });
-          resetState();
-        }
-      }
     }, 250);
-  };
+};
 
 
   const processFile = async (file: File) => {
