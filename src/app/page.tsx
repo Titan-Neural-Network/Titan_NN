@@ -7,7 +7,7 @@ import {
   Camera,
   Loader2,
   History,
-  ArrowLeft,
+  FileText,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -144,10 +144,6 @@ export default function DocumentUploader() {
           {!result && (
             <div>
               <div className="mb-8">
-                <Button variant="link" className="px-0 text-muted-foreground">
-                  <ArrowLeft className="mr-2" />
-                  Back
-                </Button>
                 <h1 className="text-3xl font-bold tracking-tight">
                   Upload Documents
                 </h1>
