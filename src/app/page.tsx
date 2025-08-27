@@ -482,101 +482,147 @@ export default function DocumentUploader() {
 
   const ResultComponent = () => (
     <div className="space-y-6">
-        <div className="flex justify-between items-center">
-            <div>
-                <h1 className="text-3xl font-bold">Analysis Complete</h1>
-                <p className="text-muted-foreground text-sm">Job ID: {jobId}</p>
-            </div>
-            <div className="flex items-center gap-2">
-                <Button variant="outline"><Download className="mr-2 h-4 w-4" /> TXT</Button>
-                <Button variant="outline"><FileJson className="mr-2 h-4 w-4" /> JSON</Button>
-                <Button variant="outline"><FileCode className="mr-2 h-4 w-4" /> HTML</Button>
-                <Button onClick={resetState}><UploadCloud className="mr-2 h-4 w-4" /> New Upload</Button>
-            </div>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold">Analysis Complete</h1>
+          <p className="text-muted-foreground text-sm">Job ID: {jobId}</p>
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" /> TXT
+          </Button>
+          <Button variant="outline">
+            <FileJson className="mr-2 h-4 w-4" /> JSON
+          </Button>
+          <Button variant="outline">
+            <FileCode className="mr-2 h-4 w-4" /> HTML
+          </Button>
+          <Button onClick={resetState}>
+            <UploadCloud className="mr-2 h-4 w-4" /> New Upload
+          </Button>
+        </div>
+      </div>
 
       <Tabs defaultValue="plain-english">
-        <TabsList>
-            <TabsTrigger value="plain-english"><Newspaper className="mr-2 h-4 w-4" /> Plain English</TabsTrigger>
-            <TabsTrigger value="key-facts"><Key className="mr-2 h-4 w-4" /> Key Facts</TabsTrigger>
-            <TabsTrigger value="risks-fees"><AlertTriangle className="mr-2 h-4 w-4" /> Risks & Fees</TabsTrigger>
-            <TabsTrigger value="to-do"><ClipboardList className="mr-2 h-4 w-4" /> To-Do Items</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+          <TabsTrigger value="plain-english">
+            <Newspaper className="mr-2 h-4 w-4" /> Plain English
+          </TabsTrigger>
+          <TabsTrigger value="key-facts">
+            <Key className="mr-2 h-4 w-4" /> Key Facts
+          </TabsTrigger>
+          <TabsTrigger value="risks-fees">
+            <AlertTriangle className="mr-2 h-4 w-4" /> Risks & Fees
+          </TabsTrigger>
+          <TabsTrigger value="to-do">
+            <ClipboardList className="mr-2 h-4 w-4" /> To-Do Items
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="plain-english">
-           <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                        <Newspaper /> Plain English Summary
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    <p className="text-muted-foreground">{result!.summary}</p>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Newspaper /> Plain English Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <p className="text-muted-foreground">{result!.summary}</p>
 
+              <div>
+                <h3 className="font-semibold mb-2">Document Citations</h3>
+                <div className="space-y-2 text-sm">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
                     <div>
-                        <h3 className="font-semibold mb-2">Document Citations</h3>
-                        <div className="space-y-2 text-sm">
-                            <div className="flex justify-between items-center">
-                                <div><BadgeComponent variant="secondary">Page 1, Vehicle Details Section</BadgeComponent></div>
-                                <div className="text-muted-foreground">Total amount ₹6,85,000</div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <div><BadgeComponent variant="secondary">Page 5, Loan Terms Para 3</BadgeComponent></div>
-                                <div className="text-muted-foreground">2% monthly penalty</div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <div><BadgeComponent variant="secondary">Page 2, Delivery Schedule</BadgeComponent></div>
-                                <div className="text-muted-foreground">Delivery date March 15</div>
-                            </div>
-                             <div className="flex justify-between items-center">
-                                <div><BadgeComponent variant="secondary">Page 4, Additional Items</BadgeComponent></div>
-                                <div className="text-muted-foreground">Mandatory accessories ₹45,000</div>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <div><BadgeComponent variant="secondary">Page 6, Cancellation Policy</BadgeComponent></div>
-                                <div className="text-muted-foreground">No cancellation after 7 days</div>
-                            </div>
-                        </div>
+                      <BadgeComponent variant="secondary">
+                        Page 1, Vehicle Details Section
+                      </BadgeComponent>
                     </div>
-                </CardContent>
-            </Card>
+                    <div className="text-muted-foreground mt-1 md:mt-0">
+                      Total amount ₹6,85,000
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                      <BadgeComponent variant="secondary">
+                        Page 5, Loan Terms Para 3
+                      </BadgeComponent>
+                    </div>
+                    <div className="text-muted-foreground mt-1 md:mt-0">
+                      2% monthly penalty
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                      <BadgeComponent variant="secondary">
+                        Page 2, Delivery Schedule
+                      </BadgeComponent>
+                    </div>
+                    <div className="text-muted-foreground mt-1 md:mt-0">
+                      Delivery date March 15
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                      <BadgeComponent variant="secondary">
+                        Page 4, Additional Items
+                      </BadgeComponent>
+                    </div>
+                    <div className="text-muted-foreground mt-1 md:mt-0">
+                      Mandatory accessories ₹45,000
+                    </div>
+                  </div>
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+                    <div>
+                      <BadgeComponent variant="secondary">
+                        Page 6, Cancellation Policy
+                      </BadgeComponent>
+                    </div>
+                    <div className="text-muted-foreground mt-1 md:mt-0">
+                      No cancellation after 7 days
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
-         <TabsContent value="key-facts">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                        <Key /> Key Facts
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>Key facts will be displayed here.</p>
-                </CardContent>
-            </Card>
+        <TabsContent value="key-facts">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <Key /> Key Facts
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Key facts will be displayed here.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
         <TabsContent value="risks-fees">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                        <AlertTriangle /> Risks & Fees
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>Risks and fees will be displayed here.</p>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <AlertTriangle /> Risks & Fees
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Risks and fees will be displayed here.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
         <TabsContent value="to-do">
-             <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
-                        <ClipboardList /> To-Do Items
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p>To-do items will be displayed here.</p>
-                </CardContent>
-            </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-xl">
+                <ClipboardList /> To-Do Items
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>To-do items will be displayed here.</p>
+            </CardContent>
+          </Card>
         </TabsContent>
-    </Tabs>
+      </Tabs>
     </div>
   );
 

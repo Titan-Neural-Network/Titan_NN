@@ -105,12 +105,12 @@ export default function HistoryPage() {
       <main className="flex-1 container mx-auto px-4 py-8 md:px-6 lg:py-12">
         <Card>
           <CardHeader>
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
               <CardTitle>Processing History</CardTitle>
-              <div className="flex items-center gap-4">
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search history..." className="pl-10" />
+                  <Input placeholder="Search history..." className="pl-10 w-full md:w-auto" />
                 </div>
                 <Button asChild>
                   <Link href="/">
