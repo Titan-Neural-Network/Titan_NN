@@ -536,15 +536,6 @@ export default function DocumentUploader() {
           )}
         </div>
       </main>
-      {credits !== null && (
-        <div className="fixed bottom-4 right-4">
-            <div className="w-24 h-24 bg-primary rounded-full flex flex-col items-center justify-center text-primary-foreground shadow-lg">
-                <Database className="h-6 w-6 mb-1" />
-                <div className="text-lg font-bold">{credits}</div>
-                <div className="text-xs">Remaining</div>
-            </div>
-        </div>
-      )}
     </div>
   );
 }
