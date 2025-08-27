@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
+import Link from 'next/link';
 import {
   UploadCloud,
   File,
@@ -318,7 +319,7 @@ export default function DocumentUploader() {
         <div className="flex justify-between items-center">
             <div>
                  <Button variant="link" className="p-0 text-muted-foreground" onClick={resetState}>
-                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back to Upload
                  </Button>
                 <h1 className="text-3xl font-bold">Analysis Complete</h1>
                 <p className="text-muted-foreground text-sm">Job ID: {jobId}</p>
@@ -429,12 +430,14 @@ export default function DocumentUploader() {
           </div>
         </div>
         <nav className="flex items-center gap-6">
-          <Button variant="link" className="text-foreground" onClick={resetState}>
-            Home
+          <Button variant="link" className="text-foreground" asChild>
+            <Link href="/">Home</Link>
           </Button>
-          <Button variant="link" className="text-muted-foreground">
-            <History className="mr-2" />
-            History
+          <Button variant="link" className="text-muted-foreground" asChild>
+            <Link href="/history">
+              <History className="mr-2" />
+              History
+            </Link>
           </Button>
         </nav>
       </header>
@@ -465,9 +468,11 @@ export default function DocumentUploader() {
                   <UploadCloud className="mr-2"/>
                   Upload Documents
                 </Button>
-                <Button size="lg" variant="outline">
-                   <History className="mr-2"/>
-                   View History
+                <Button size="lg" variant="outline" asChild>
+                   <Link href="/history">
+                    <History className="mr-2"/>
+                    View History
+                   </Link>
                 </Button>
               </div>
               <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
