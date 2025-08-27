@@ -9,6 +9,7 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { decrementCredits } from '@/services/credits';
 import {z} from 'genkit';
 
 const ProcessDocumentInputSchema = z.object({
@@ -45,6 +46,10 @@ const processDocumentFlow = ai.defineFlow(
   },
   async input => {
     const {output} = await prompt(input);
+    
+    // Decrement credits after successful processing
+    await decrementCredits();
+    
     return output!;
   }
 );
