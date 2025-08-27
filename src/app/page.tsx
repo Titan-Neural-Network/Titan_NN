@@ -363,39 +363,44 @@ export default function DocumentUploader() {
 
     let currentStep = 0;
     const interval = setInterval(() => {
-        const allStepsComplete = currentStep >= initialProcessingSteps.length;
-        
-        if (analysisResult || analysisError || allStepsComplete) {
-            clearInterval(interval);
-            setLoading(false);
+      const allStepsComplete = currentStep >= initialProcessingSteps.length;
 
-            if (analysisResult) {
-                setResult(analysisResult);
-                setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
-            } else if (analysisError) {
-                console.error(analysisError);
-                toast({
-                    variant: 'destructive',
-                    title: 'An error occurred.',
-                    description: 'Failed to process the document. Please try again.',
-                });
-                resetState();
-            }
-            return;
+      if (analysisResult) {
+        clearInterval(interval);
+        setLoading(false);
+        setResult(analysisResult);
+        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
+        return;
+      }
+
+      if (allStepsComplete) {
+        clearInterval(interval);
+        if (analysisError) {
+          console.error(analysisError);
+          toast({
+            variant: 'destructive',
+            title: 'An error occurred.',
+            description: 'Failed to process the document. Please try again.',
+          });
+          resetState();
+        } else {
+            // This case handles if the simulation finishes but the result is not yet available.
+            // We just stop the simulation interval and the next check will handle it.
         }
-
-        setProcessingSteps(prevSteps => {
-            const newSteps = [...prevSteps];
-            if (currentStep < newSteps.length) {
-                if (currentStep > 0) {
-                    newSteps[currentStep - 1].status = 'complete';
-                }
-                newSteps[currentStep].status = 'processing';
-            }
-            return newSteps;
-        });
-
-        currentStep++;
+        return;
+      }
+      
+      if (currentStep < initialProcessingSteps.length) {
+          setProcessingSteps(prevSteps => {
+              const newSteps = [...prevSteps];
+              if (currentStep > 0) {
+                  newSteps[currentStep - 1].status = 'complete';
+              }
+              newSteps[currentStep].status = 'processing';
+              return newSteps;
+          });
+          currentStep++;
+      }
     }, 250);
 };
 
@@ -444,10 +449,11 @@ export default function DocumentUploader() {
   const resetState = () => {
     setResult(null);
     setFileName(null);
-    setShowUploader(false);
     setLoading(false);
     setProcessingSteps(initialProcessingSteps);
     setJobId(null);
+    // Setting showUploader back to true to stay on the uploader screen
+    setShowUploader(true); 
   };
 
   const UploaderComponent = () => (
@@ -729,3 +735,5 @@ export default function DocumentUploader() {
     </div>
   );
 }
+
+    
