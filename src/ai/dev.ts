@@ -1,4 +1,4 @@
 import { config } from 'dotenv';
 config();
 
-import '@/ai/flows/legalese-distiller.ts';
+import '@/ai/flows/document-processor.ts';

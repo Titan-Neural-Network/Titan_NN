@@ -3,8 +3,8 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'LegalEagle',
-  description: 'Summarize legal documents with AI',
+  title: 'Titan Neural Network',
+  description: 'Document Intelligence Platform',
 };
 
 export default function RootLayout({
