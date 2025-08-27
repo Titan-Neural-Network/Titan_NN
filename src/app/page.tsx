@@ -340,6 +340,7 @@ export default function DocumentUploader() {
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialProcessingSteps);
   const [jobId, setJobId] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
 
   const runProcessingSimulation = (dataUri: string, name: string) => {
@@ -350,49 +351,15 @@ export default function DocumentUploader() {
     setResult(null);
     setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
 
-    const analysisPromise = processDocument({ documentDataUri: dataUri });
-
-    let analysisResult: ProcessDocumentOutput | null = null;
-    let analysisError: Error | null = null;
-
-    analysisPromise.then(response => {
-      analysisResult = response;
-    }).catch(error => {
-      analysisError = error;
-    });
-
+    // Start UI simulation
     let currentStep = 0;
-    const interval = setInterval(() => {
-      // If we have a result, clear interval and show it.
-      if (analysisResult) {
-        clearInterval(interval);
-        setLoading(false);
-        setResult(analysisResult);
-        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
-        return;
-      }
-      
-      // If we have an error, clear interval and show it.
-      if (analysisError) {
-        clearInterval(interval);
-        console.error(analysisError);
-        toast({
-          variant: 'destructive',
-          title: 'An error occurred.',
-          description: 'Failed to process the document. Please try again.',
-        });
-        resetState();
-        return;
-      }
-
-      // If simulation is over but no result/error yet, just stop the simulation.
-      // The next check on the next interval will catch the result/error.
+    simulationIntervalRef.current = setInterval(() => {
       if (currentStep >= initialProcessingSteps.length) {
-        clearInterval(interval);
+        if (simulationIntervalRef.current) {
+          clearInterval(simulationIntervalRef.current);
+        }
         return;
       }
-      
-      // Animate the next step
       setProcessingSteps(prevSteps => {
         const newSteps = [...prevSteps];
         if (currentStep > 0) {
@@ -404,8 +371,32 @@ export default function DocumentUploader() {
         return newSteps;
       });
       currentStep++;
-
     }, 250);
+
+    // Start AI analysis in parallel
+    processDocument({ documentDataUri: dataUri })
+      .then(analysisResult => {
+        if (simulationIntervalRef.current) {
+          clearInterval(simulationIntervalRef.current);
+        }
+        setResult(analysisResult);
+        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
+      })
+      .catch(error => {
+        if (simulationIntervalRef.current) {
+          clearInterval(simulationIntervalRef.current);
+        }
+        console.error(error);
+        toast({
+          variant: 'destructive',
+          title: 'An error occurred.',
+          description: 'Failed to process the document. Please try again.',
+        });
+        resetState();
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   };
 
 
@@ -451,6 +442,9 @@ export default function DocumentUploader() {
   };
 
   const resetState = () => {
+    if (simulationIntervalRef.current) {
+      clearInterval(simulationIntervalRef.current);
+    }
     setResult(null);
     setFileName(null);
     setLoading(false);
@@ -738,5 +732,3 @@ export default function DocumentUploader() {
     </div>
   );
 }
-
-    
