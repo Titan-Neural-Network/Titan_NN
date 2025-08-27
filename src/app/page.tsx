@@ -25,6 +25,7 @@ import {
   ClipboardList,
   Newspaper,
   ArrowLeft,
+  Database,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -496,6 +497,13 @@ export default function DocumentUploader() {
           )}
         </div>
       </main>
+      <div className="fixed bottom-4 right-4">
+        <div className="w-24 h-24 bg-primary rounded-full flex flex-col items-center justify-center text-primary-foreground shadow-lg">
+            <Database className="h-6 w-6 mb-1" />
+            <div className="text-lg font-bold">50</div>
+            <div className="text-xs">Remaining</div>
+        </div>
+      </div>
     </div>
   );
 }
