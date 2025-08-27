@@ -258,7 +258,7 @@ function CameraComponent({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && resetAndClose()}>
-      <DialogContent className="max-w-md h-[60vh] flex flex-col">
+      <DialogContent className="max-w-md h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{capturedImage ? 'Crop Your Photo' : 'Take a Photo'}</DialogTitle>
         </DialogHeader>
