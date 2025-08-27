@@ -27,6 +27,7 @@ import {
   Database,
   Crop,
   Check,
+  Menu,
 } from 'lucide-react';
 import Cropper from 'react-easy-crop';
 import type { Point, Area } from 'react-easy-crop';
@@ -43,6 +44,7 @@ import { Badge as BadgeComponent } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
 import getCroppedImg from '@/lib/crop-image';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 
 function Logo() {
@@ -256,7 +258,7 @@ function CameraComponent({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && resetAndClose()}>
-      <DialogContent className="max-w-xl h-[70vh] flex flex-col">
+      <DialogContent className="max-w-md h-[60vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{capturedImage ? 'Crop Your Photo' : 'Take a Photo'}</DialogTitle>
         </DialogHeader>
@@ -580,27 +582,55 @@ export default function DocumentUploader() {
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
-      <header className="flex h-20 shrink-0 items-center justify-between border-b px-4 md:px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6">
         <div className="flex items-center gap-4">
-          <Logo />
-          <div>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo />
+            <span className="sr-only">Titan Neural Network</span>
+          </Link>
+          <div className="hidden md:block">
             <h1 className="text-lg font-bold">Titan Neural Network</h1>
             <p className="text-sm text-muted-foreground">
               Document Intelligence Platform
             </p>
           </div>
         </div>
-        <nav className="flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6">
           <Button variant="link" className="text-foreground" asChild>
             <Link href="/">Home</Link>
           </Button>
           <Button variant="link" className="text-muted-foreground" asChild>
             <Link href="/history">
-              <History className="mr-2" />
+              <History className="mr-2 h-4 w-4" />
               History
             </Link>
           </Button>
         </nav>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="md:hidden">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <nav className="grid gap-6 text-lg font-medium">
+              <Link
+                href="#"
+                className="flex items-center gap-2 text-lg font-semibold"
+              >
+                <Logo />
+                <span className="sr-only">Titan Neural Network</span>
+              </Link>
+              <Link href="/" className="text-foreground">
+                Home
+              </Link>
+              <Link href="/history" className="text-muted-foreground">
+                History
+              </Link>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 md:px-6 lg:py-12">

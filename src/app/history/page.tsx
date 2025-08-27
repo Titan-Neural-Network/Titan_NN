@@ -6,6 +6,7 @@ import {
   MoreVertical,
   Search,
   UploadCloud,
+  Menu
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +21,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 function Logo() {
   return (
@@ -52,27 +54,54 @@ const historyData: any[] = [];
 export default function HistoryPage() {
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
-      <header className="flex h-20 shrink-0 items-center justify-between border-b px-4 md:px-6">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6">
         <div className="flex items-center gap-4">
-          <Logo />
-          <div>
+          <Link href="/" className="flex items-center gap-2">
+            <Logo />
+            <span className="sr-only">Titan Neural Network</span>
+          </Link>
+          <div className="hidden md:block">
             <h1 className="text-lg font-bold">Titan Neural Network</h1>
             <p className="text-sm text-muted-foreground">
               Document Intelligence Platform
             </p>
           </div>
         </div>
-        <nav className="flex items-center gap-6">
+        <nav className="hidden md:flex items-center gap-6">
           <Button variant="link" className="text-muted-foreground" asChild>
             <Link href="/">Home</Link>
           </Button>
           <Button variant="link" className="text-foreground">
-            <History className="mr-2" />
+            <History className="mr-2 h-4 w-4" />
             History
           </Button>
         </nav>
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="outline" size="icon" className="md:hidden">
+              <Menu className="h-6 w-6" />
+              <span className="sr-only">Toggle navigation menu</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left">
+            <nav className="grid gap-6 text-lg font-medium">
+              <Link
+                href="#"
+                className="flex items-center gap-2 text-lg font-semibold"
+              >
+                <Logo />
+                <span className="sr-only">Titan Neural Network</span>
+              </Link>
+              <Link href="/" className="text-muted-foreground">
+                Home
+              </Link>
+              <Link href="/history" className="text-foreground">
+                History
+              </Link>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </header>
-
       <main className="flex-1 container mx-auto px-4 py-8 md:px-6 lg:py-12">
         <Card>
           <CardHeader>
@@ -83,9 +112,11 @@ export default function HistoryPage() {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input placeholder="Search history..." className="pl-10" />
                 </div>
-                <Button>
-                  <UploadCloud className="mr-2" />
-                  New Upload
+                <Button asChild>
+                  <Link href="/">
+                    <UploadCloud className="mr-2" />
+                    New Upload
+                  </Link>
                 </Button>
               </div>
             </div>
