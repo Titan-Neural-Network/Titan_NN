@@ -47,48 +47,7 @@ function Logo() {
   );
 }
 
-const historyData = [
-  {
-    id: 'job_1720101412_abc123',
-    fileName: 'Maruti_Alto_Purchase_Agreement.pdf',
-    date: '2024-07-04',
-    type: 'Car Purchase Agreement',
-    status: 'Completed',
-    summary: 'Agreement for a new Alto K10 VXI. Total cost is ₹6,85,000...',
-  },
-  {
-    id: 'job_1720050012_def456',
-    fileName: 'HDFC_Loan_Documents.pdf',
-    date: '2024-07-03',
-    type: 'Loan Agreement',
-    status: 'Completed',
-    summary: 'Financing of ₹5,35,000 through HDFC Bank at 8.5% interest...',
-  },
-  {
-    id: 'job_1719123456_ghi789',
-    fileName: 'Car_Insurance_Policy.jpg',
-    date: '2024-06-23',
-    type: 'Insurance Policy',
-    status: 'Completed',
-    summary: 'Comprehensive insurance policy from Acko for the new vehicle...',
-  },
-  {
-    id: 'job_1718567890_jkl012',
-    fileName: 'Vehicle_Registration.pdf',
-    date: '2024-06-16',
-    type: 'Registration Card',
-    status: 'Failed',
-    summary: 'Failed to extract information due to poor image quality.',
-  },
-  {
-    id: 'job_1718012345_mno345',
-    fileName: 'Invoice_for_Accessories.png',
-    date: '2024-06-10',
-    type: 'Invoice',
-    status: 'Completed',
-    summary: 'Invoice for mandatory accessories worth ₹45,000.',
-  },
-];
+const historyData: any[] = [];
 
 export default function HistoryPage() {
   return (
@@ -144,41 +103,52 @@ export default function HistoryPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {historyData.map((item) => (
-                  <TableRow key={item.id}>
-                    <TableCell className="font-medium flex items-center gap-2">
-                      <File className="text-muted-foreground" /> {item.fileName}
-                    </TableCell>
-                    <TableCell>{item.date}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{item.type}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          item.status === 'Completed'
-                            ? 'default'
-                            : 'destructive'
-                        }
-                        className={
-                          item.status === 'Completed'
-                            ? 'bg-green-500/20 text-green-500 border-transparent'
-                            : ''
-                        }
-                      >
-                        {item.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground max-w-sm truncate">
-                      {item.summary}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                {historyData.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="text-center text-muted-foreground py-10"
+                    >
+                      You haven't processed any documents yet.
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  historyData.map((item) => (
+                    <TableRow key={item.id}>
+                      <TableCell className="font-medium flex items-center gap-2">
+                        <File className="text-muted-foreground" /> {item.fileName}
+                      </TableCell>
+                      <TableCell>{item.date}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{item.type}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            item.status === 'Completed'
+                              ? 'default'
+                              : 'destructive'
+                          }
+                          className={
+                            item.status === 'Completed'
+                              ? 'bg-green-500/20 text-green-500 border-transparent'
+                              : ''
+                          }
+                        >
+                          {item.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground max-w-sm truncate">
+                        {item.summary}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </CardContent>
