@@ -10,8 +10,6 @@ import {
   Bell,
   Home,
   FileText,
-  Cog,
-  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -141,7 +139,7 @@ export default function DocumentUploader() {
   return (
     <SidebarProvider>
       <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
-        <Sidebar>
+        <Sidebar collapsible="icon">
           <SidebarContent>
             <SidebarHeader>
               <div className="flex items-center gap-2">
@@ -162,18 +160,6 @@ export default function DocumentUploader() {
                 <SidebarMenuButton>
                   <FileText />
                   Documents
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Cog />
-                  Settings
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton>
-                  <Shield />
-                  Security
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
