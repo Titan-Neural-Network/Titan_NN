@@ -349,53 +349,49 @@ export default function DocumentUploader() {
     setShowUploader(true);
     setResult(null);
     setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
-
+  
     const analysisPromise = processDocument({ documentDataUri: dataUri });
-
+  
     let analysisResult: ProcessDocumentOutput | null = null;
     let analysisError: Error | null = null;
-
+  
     analysisPromise.then(response => {
-        analysisResult = response;
+      analysisResult = response;
     }).catch(error => {
-        analysisError = error;
+      analysisError = error;
     });
-
+  
     let currentStep = 0;
     const interval = setInterval(() => {
-      if (analysisResult || analysisError) {
+      setProcessingSteps(prevSteps => {
+        const newSteps = [...prevSteps];
+        if (currentStep < newSteps.length) {
+          if (currentStep > 0) {
+            newSteps[currentStep - 1].status = 'complete';
+          }
+          newSteps[currentStep].status = 'processing';
+        }
+        currentStep++;
+        return newSteps;
+      });
+  
+      if (analysisResult || analysisError || currentStep > initialProcessingSteps.length) {
         clearInterval(interval);
         setLoading(false);
+  
         if (analysisResult) {
           setResult(analysisResult);
-          setProcessingSteps(prev => prev.map(s => ({...s, status: 'complete'})));
+          setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
         } else {
-           console.error(analysisError);
-           toast({
-               variant: 'destructive',
-               title: 'An error occurred.',
-               description: 'Failed to process the document. Please try again.',
-           });
+          console.error(analysisError);
+          toast({
+            variant: 'destructive',
+            title: 'An error occurred.',
+            description: 'Failed to process the document. Please try again.',
+          });
+          resetState();
         }
-        return;
       }
-
-      setProcessingSteps(prevSteps => {
-          const newSteps = [...prevSteps];
-          if (currentStep < newSteps.length) {
-              if (currentStep > 0) {
-                  newSteps[currentStep - 1].status = 'complete';
-              }
-              newSteps[currentStep].status = 'processing';
-          }
-          
-          if (currentStep >= newSteps.length) {
-              clearInterval(interval);
-          }
-          
-          currentStep++;
-          return newSteps;
-      });
     }, 250);
   };
 
