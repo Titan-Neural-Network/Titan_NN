@@ -8,9 +8,12 @@ import {
   Loader2,
   History,
   FileText,
+  Zap,
+  BrainCircuit,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import {
   processDocument,
@@ -43,10 +46,33 @@ function Logo() {
   );
 }
 
+function FeatureCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Card className="bg-card/50 backdrop-blur-sm">
+      <CardHeader className="flex flex-row items-center gap-4 space-y-0 pb-2">
+        <div className="p-2 bg-primary/10 rounded-md">{icon}</div>
+        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <p className="text-sm text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DocumentUploader() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ProcessDocumentOutput | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [showUploader, setShowUploader] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -114,7 +140,100 @@ export default function DocumentUploader() {
   const resetState = () => {
     setResult(null);
     setFileName(null);
+    setShowUploader(false);
   };
+
+  const UploaderComponent = () => (
+    <>
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold tracking-tight">
+          Upload Documents
+        </h1>
+        <p className="mt-2 text-muted-foreground">
+          Drag and drop your car purchase documents or click to browse.
+          We support PDFs and images (PNG, JPG, JPEG, WebP).
+        </p>
+      </div>
+
+      <Card
+        className="border-2 border-dashed bg-card shadow-none"
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
+        <CardContent className="p-10 text-center">
+          <div className="flex flex-col items-center justify-center space-y-4">
+            <div className="rounded-full bg-primary/10 p-3">
+              <UploadCloud className="h-8 w-8 text-primary" />
+            </div>
+            <div className="space-y-1">
+              <p className="font-semibold">Upload your documents</p>
+              <p className="text-sm text-muted-foreground">
+                Drag &amp; drop files here, or click to browse
+              </p>
+            </div>
+            <div className="flex gap-4 pt-4">
+              <Button onClick={handleBrowse} disabled={loading}>
+                <File className="mr-2" />
+                Browse Files
+              </Button>
+              <Button variant="secondary" disabled={true}>
+                <Camera className="mr-2" />
+                Take Photo
+              </Button>
+            </div>
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileChange}
+            className="hidden"
+            accept="application/pdf,image/png,image/jpeg,image/webp"
+          />
+        </CardContent>
+      </Card>
+      <p className="mt-4 text-center text-xs text-muted-foreground">
+        Supports PDF, PNG, JPG, JPEG, WebP • Max 50MB per file
+      </p>
+    </>
+  );
+
+  const ResultComponent = () => (
+    <div className="space-y-6">
+       <Card>
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-4">
+            File Uploaded
+          </h2>
+          <div className="flex items-center gap-4">
+            <FileText className="h-8 w-8 text-primary" />
+            <span className="font-medium">{fileName}</span>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="p-6">
+          <h2 className="text-xl font-semibold mb-4">Response</h2>
+          <div className="space-y-4 text-sm">
+            <div>
+              <p className="font-medium text-muted-foreground">
+                Document Type
+              </p>
+              <p className="font-semibold text-lg">
+                {result!.documentType}
+              </p>
+            </div>
+            <div>
+              <p className="font-medium text-muted-foreground">
+                Summary
+              </p>
+              <p>{result!.summary}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+      <Button onClick={resetState}>Process Another Document</Button>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
@@ -129,7 +248,7 @@ export default function DocumentUploader() {
           </div>
         </div>
         <nav className="flex items-center gap-6">
-          <Button variant="link" className="text-foreground">
+          <Button variant="link" className="text-foreground" onClick={resetState}>
             Home
           </Button>
           <Button variant="link" className="text-muted-foreground">
@@ -141,102 +260,57 @@ export default function DocumentUploader() {
 
       <main className="flex-1 container mx-auto px-4 py-8 md:px-6 lg:py-12">
         <div className="mx-auto max-w-4xl">
-          {!result && (
-            <div>
-              <div className="mb-8">
-                <h1 className="text-3xl font-bold tracking-tight">
-                  Upload Documents
-                </h1>
-                <p className="mt-2 text-muted-foreground">
-                  Drag and drop your car purchase documents or click to browse.
-                  We support PDFs and images (PNG, JPG, JPEG, WebP).
-                </p>
+          {showUploader ? (
+              <>
+              {loading && (
+                <div className="mt-8 text-center">
+                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
+                  <p className="mt-2">Processing {fileName || 'document'}...</p>
+                </div>
+              )}
+              {!loading && !result && <UploaderComponent />}
+              {!loading && result && <ResultComponent />}
+              </>
+          ) : (
+            <div className="text-center">
+              <div className="inline-block p-3 mb-4 bg-primary/10 rounded-lg">
+                 <BrainCircuit className="w-8 h-8 text-primary" />
               </div>
-
-              <Card
-                className="border-2 border-dashed bg-card shadow-none"
-                onDrop={handleDrop}
-                onDragOver={handleDragOver}
-              >
-                <CardContent className="p-10 text-center">
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="rounded-full bg-primary/10 p-3">
-                      <UploadCloud className="h-8 w-8 text-primary" />
-                    </div>
-                    <div className="space-y-1">
-                      <p className="font-semibold">Upload your documents</p>
-                      <p className="text-sm text-muted-foreground">
-                        Drag &amp; drop files here, or click to browse
-                      </p>
-                    </div>
-                    <div className="flex gap-4 pt-4">
-                      <Button onClick={handleBrowse} disabled={loading}>
-                        <File className="mr-2" />
-                        Browse Files
-                      </Button>
-                      <Button variant="secondary" disabled={true}>
-                        <Camera className="mr-2" />
-                        Take Photo
-                      </Button>
-                    </div>
-                  </div>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileChange}
-                    className="hidden"
-                    accept="application/pdf,image/png,image/jpeg,image/webp"
-                  />
-                </CardContent>
-              </Card>
-              <p className="mt-4 text-center text-xs text-muted-foreground">
-                Supports PDF, PNG, JPG, JPEG, WebP • Max 50MB per file
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
+                Titanium-Grade
+                <br />
+                <span className="text-primary">Document Clarity</span>
+              </h1>
+              <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
+                Transform complex car purchase documents into clear, actionable insights. Our AI extracts key facts, identifies risks, and highlights what you need to do next.
               </p>
-            </div>
-          )}
-
-          {loading && (
-            <div className="mt-8 text-center">
-              <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-              <p className="mt-2">Processing {fileName || 'document'}...</p>
-            </div>
-          )}
-
-          {result && (
-            <div className="mt-8 space-y-6">
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">
-                    File Uploaded
-                  </h2>
-                  <div className="flex items-center gap-4">
-                    <FileText className="h-8 w-8 text-primary" />
-                    <span className="font-medium">{fileName}</span>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-6">
-                  <h2 className="text-xl font-semibold mb-4">Response</h2>
-                  <div className="space-y-4 text-sm">
-                    <div>
-                      <p className="font-medium text-muted-foreground">
-                        Document Type
-                      </p>
-                      <p className="font-semibold text-lg">
-                        {result.documentType}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-muted-foreground">
-                        Summary
-                      </p>
-                      <p>{result.summary}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Button onClick={resetState}>Process Another Document</Button>
+              <div className="mt-8 flex justify-center gap-4">
+                <Button size="lg" onClick={() => setShowUploader(true)}>
+                  <UploadCloud className="mr-2"/>
+                  Upload Documents
+                </Button>
+                <Button size="lg" variant="outline">
+                   <History className="mr-2"/>
+                   View History
+                </Button>
+              </div>
+              <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
+                <FeatureCard 
+                    icon={<Zap className="text-blue-400" />}
+                    title="Lightning Fast OCR"
+                    description="Advanced OCR with auto-cleaning, deskewing, and multi-language support extracts text with exceptional accuracy."
+                />
+                <FeatureCard 
+                    icon={<BrainCircuit className="text-green-400" />}
+                    title="AI-Powered Analysis"
+                    description="Our neural network understands document structure, extracts key facts, and identifies potential risks in plain English."
+                />
+                <FeatureCard 
+                    icon={<ShieldCheck className="text-purple-400" />}
+                    title="Secure & Private"
+                    description="Your documents are processed securely with optional PII redaction and enterprise-grade data protection."
+                />
+              </div>
             </div>
           )}
         </div>
