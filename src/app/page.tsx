@@ -174,21 +174,32 @@ function CameraComponent({
     let stream: MediaStream | null = null;
     const getCameraPermission = async () => {
       if (!open) return;
+      const videoConstraints: MediaStreamConstraints['video'] = {
+        facingMode: 'environment' 
+      };
+
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        setHasCameraPermission(true);
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
+        stream = await navigator.mediaDevices.getUserMedia({ video: videoConstraints });
+      } catch (err) {
+        console.warn('Could not get environment camera, trying default', err);
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        } catch (error) {
+            console.error('Error accessing camera:', error);
+            setHasCameraPermission(false);
+            toast({
+              variant: 'destructive',
+              title: 'Camera Access Denied',
+              description: 'Please enable camera permissions in your browser settings to use this feature.',
+            });
+            onClose();
+            return;
         }
-      } catch (error) {
-        console.error('Error accessing camera:', error);
-        setHasCameraPermission(false);
-        toast({
-          variant: 'destructive',
-          title: 'Camera Access Denied',
-          description: 'Please enable camera permissions in your browser settings to use this feature.',
-        });
-        onClose();
+      }
+
+      setHasCameraPermission(true);
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
       }
     };
     getCameraPermission();
@@ -245,7 +256,7 @@ function CameraComponent({
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => !isOpen && resetAndClose()}>
-      <DialogContent className="max-w-3xl h-[80vh] flex flex-col">
+      <DialogContent className="max-w-xl h-[70vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>{capturedImage ? 'Crop Your Photo' : 'Take a Photo'}</DialogTitle>
         </DialogHeader>
