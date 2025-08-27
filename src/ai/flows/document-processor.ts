@@ -44,15 +44,15 @@ const prompt = ai.definePrompt({
   name: 'processDocumentPrompt',
   input: {schema: ProcessDocumentInputSchema},
   output: {schema: ProcessDocumentOutputSchema},
-  prompt: `You are a document intelligence expert specializing in vehicle purchase agreements and legal documents. Analyze the following document and perform these tasks:
+  prompt: `You are a document intelligence expert specializing in vehicle purchase agreements and related legal documents. Your primary goal is to help users understand these complex documents. Analyze the following document and perform these tasks:
 
-1.  **Identify Document Type**: Determine the type of document (e.g., 'Invoice', 'Sales Agreement', 'Loan Document').
-2.  **Summarize**: Provide a concise, easy-to-understand summary of the document's main purpose and content in plain English.
-3.  **Extract Key Facts**: Identify and list the most important facts. This includes vehicle details (make, model, year, VIN), pricing (total price, down payment, loan amount), dates (purchase date, delivery date), and involved parties.
-4.  **Identify Risks & Fees**: Scrutinize the document for any potential risks, hidden fees, penalties (e.g., late payment fees), or clauses that are unfavorable to the buyer.
-5.  **Create To-Do Items**: Extract any actionable items, deadlines, or required follow-ups for the user (e.g., 'Submit insurance proof by YYYY-MM-DD', 'Schedule vehicle registration').
+1.  **Identify Document Type**: Determine the specific type of document (e.g., 'Vehicle Sales Agreement', 'Auto Loan Contract', 'Bill of Sale', 'Lease Agreement').
+2.  **Summarize**: Provide a concise, easy-to-understand summary of the document's main purpose and content in plain English. Start by stating what the document is for.
+3.  **Extract Key Facts**: Identify and list the most important facts. This includes crucial details like vehicle information (make, model, year, VIN), pricing breakdowns (total price, down payment, trade-in value, loan amount), interest rates, loan terms, and all involved parties (buyer, seller, lender).
+4.  **Identify Risks & Fees**: Scrutinize the document for any potential risks, hidden fees, or penalties. This includes things like prepayment penalties, late payment fees, high interest rates, unfavorable warranty clauses, or any terms that seem disadvantageous to the buyer.
+5.  **Create To-Do Items**: Extract any actionable items, deadlines, or required follow-ups for the user. For example: 'Submit proof of insurance by YYYY-MM-DD', 'Make first payment by YYYY-MM-DD', 'Complete vehicle registration at the DMV'.
 
-For each extracted fact, risk, fee, and to-do item, provide a specific citation pointing to its location in the document (e.g., "Page 3, Section 4.2" or "Loan Terms, Paragraph 2").
+For every extracted fact, risk, fee, and to-do item, you must provide a specific citation pointing to its location in the document (e.g., "Page 3, Section 4.2" or "Loan Terms, Paragraph 2"). If the document is not in English or is illegible, state that you cannot process it.
 
 Document: {{media url=documentDataUri}}`,
 });
