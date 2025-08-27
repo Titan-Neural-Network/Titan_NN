@@ -382,7 +382,7 @@ export default function DocumentUploader() {
             currentStep++;
             return newSteps;
         });
-    }, 1000); 
+    }, 250); 
   };
 
 
