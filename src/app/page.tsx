@@ -346,45 +346,31 @@ export default function DocumentUploader() {
     setShowUploader(true);
     setLoading(true);
     setProcessingSteps(initialProcessingSteps);
-    setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
+    const newJobId = `job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+    setJobId(newJobId);
 
-    // --- Real-time UI updates ---
-
-    // Step 1: Immediately show "Upload Complete"
+    // --- Visual Simulation ---
+    // Step 1: Immediately show "Upload Complete" and start "Processing"
     setProcessingSteps(prev => {
         const newSteps = [...prev];
         newSteps[0].status = 'complete';
-        newSteps[1].status = 'processing'; // Start "Processing Document"
+        newSteps[1].status = 'processing';
         return newSteps;
     });
 
-    // Short delay for visual feedback on "Processing"
+    // Quick delay for visual feedback, then move to "AI Analysis"
     await new Promise(resolve => setTimeout(resolve, 500)); 
-
     setProcessingSteps(prev => {
         const newSteps = [...prev];
-        newSteps[1].status = 'complete';
-        newSteps[2].status = 'processing'; // Move to "AI Analysis"
+        if(newSteps[1]) newSteps[1].status = 'complete';
+        if(newSteps[2]) newSteps[2].status = 'processing';
         return newSteps;
     });
-    
+
     // --- AI Call ---
     try {
         const analysisResult = await processDocument({ documentDataUri: dataUri });
         setResult(analysisResult);
-        
-        // Final step: Complete the UI
-        setProcessingSteps(prev => {
-            const newSteps = [...prev];
-            newSteps[2].status = 'complete';
-            newSteps[3].status = 'processing'; // "Finalizing"
-            return newSteps;
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 250));
-
-        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
-
     } catch (error) {
         console.error("AI Analysis failed:", error);
         toast({
@@ -392,9 +378,11 @@ export default function DocumentUploader() {
             title: 'An error occurred.',
             description: 'Failed to process the document. Please try again.',
         });
-        resetState(); // Reset on error
+        resetState();
     } finally {
         setLoading(false);
+        // Final step: Complete the UI
+        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
     }
   };
 
@@ -510,15 +498,6 @@ export default function DocumentUploader() {
           <p className="text-muted-foreground text-sm">Job ID: {jobId}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" /> TXT
-          </Button>
-          <Button variant="outline">
-            <FileJson className="mr-2 h-4 w-4" /> JSON
-          </Button>
-          <Button variant="outline">
-            <FileCode className="mr-2 h-4 w-4" /> HTML
-          </Button>
           <Button onClick={resetState}>
             <UploadCloud className="mr-2 h-4 w-4" /> New Upload
           </Button>
@@ -727,5 +706,3 @@ export default function DocumentUploader() {
     </div>
   );
 }
-
-    
