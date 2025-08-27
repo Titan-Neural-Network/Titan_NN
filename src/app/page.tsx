@@ -320,6 +320,16 @@ function CameraComponent({
   );
 }
 
+const CitationItem = ({ text, citation }: { text: string; citation: string }) => (
+  <div className="flex flex-col md:flex-row justify-between items-start md:items-center py-2 border-b last:border-b-0">
+    <p className="text-muted-foreground flex-1">{text}</p>
+    <div className="text-muted-foreground mt-1 md:mt-0">
+      <BadgeComponent variant="secondary" className="whitespace-nowrap">{citation}</BadgeComponent>
+    </div>
+  </div>
+);
+
+
 export default function DocumentUploader() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ProcessDocumentOutput | null>(null);
@@ -525,64 +535,8 @@ export default function DocumentUploader() {
                 <Newspaper /> Plain English Summary
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-4">
               <p className="text-muted-foreground">{result!.summary}</p>
-
-              <div>
-                <h3 className="font-semibold mb-2">Document Citations</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                      <BadgeComponent variant="secondary">
-                        Page 1, Vehicle Details Section
-                      </BadgeComponent>
-                    </div>
-                    <div className="text-muted-foreground mt-1 md:mt-0">
-                      Total amount ₹6,85,000
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                      <BadgeComponent variant="secondary">
-                        Page 5, Loan Terms Para 3
-                      </BadgeComponent>
-                    </div>
-                    <div className="text-muted-foreground mt-1 md:mt-0">
-                      2% monthly penalty
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                      <BadgeComponent variant="secondary">
-                        Page 2, Delivery Schedule
-                      </BadgeComponent>
-                    </div>
-                    <div className="text-muted-foreground mt-1 md:mt-0">
-                      Delivery date March 15
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                      <BadgeComponent variant="secondary">
-                        Page 4, Additional Items
-                      </BadgeComponent>
-                    </div>
-                    <div className="text-muted-foreground mt-1 md:mt-0">
-                      Mandatory accessories ₹45,000
-                    </div>
-                  </div>
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                      <BadgeComponent variant="secondary">
-                        Page 6, Cancellation Policy
-                      </BadgeComponent>
-                    </div>
-                    <div className="text-muted-foreground mt-1 md:mt-0">
-                      No cancellation after 7 days
-                    </div>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -594,7 +548,15 @@ export default function DocumentUploader() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Key facts will be displayed here.</p>
+              {result!.keyFacts.length > 0 ? (
+                <div className="space-y-2 text-sm">
+                  {result!.keyFacts.map((fact, index) => (
+                    <CitationItem key={index} text={fact.fact} citation={fact.citation} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No key facts were extracted.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -606,7 +568,15 @@ export default function DocumentUploader() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>Risks and fees will be displayed here.</p>
+              {result!.risksAndFees.length > 0 ? (
+                <div className="space-y-2 text-sm">
+                  {result!.risksAndFees.map((risk, index) => (
+                     <CitationItem key={index} text={risk.description} citation={risk.citation} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No risks or fees were identified.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -618,7 +588,15 @@ export default function DocumentUploader() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p>To-do items will be displayed here.</p>
+              {result!.toDoItems.length > 0 ? (
+                <div className="space-y-2 text-sm">
+                  {result!.toDoItems.map((item, index) => (
+                    <CitationItem key={index} text={item.item} citation={item.citation} />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-muted-foreground">No to-do items were found.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
