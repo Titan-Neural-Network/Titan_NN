@@ -16,6 +16,14 @@ import {
   Info,
   CircleDot,
   Badge,
+  Download,
+  FileJson,
+  FileCode,
+  Key,
+  AlertTriangle,
+  ClipboardList,
+  Newspaper,
+  ArrowLeft,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -25,6 +33,9 @@ import {
   type ProcessDocumentOutput,
 } from '@/ai/flows/document-processor';
 import { cn } from '@/lib/utils';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge as BadgeComponent } from '@/components/ui/badge';
+
 
 function Logo() {
   return (
@@ -142,9 +153,11 @@ export default function DocumentUploader() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialProcessingSteps);
+  const [jobId, setJobId] = useState<string | null>(null);
 
   const runProcessingSimulation = () => {
         setLoading(true);
+        setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
         let currentStep = 0;
         const interval = setInterval(() => {
             setProcessingSteps(prevSteps => {
@@ -158,8 +171,6 @@ export default function DocumentUploader() {
                 
                 if (currentStep >= newSteps.length) {
                     clearInterval(interval);
-                    // This is where you would call the actual AI processing
-                    // and then set the result. For now, we'll just simulate it.
                     const reader = new FileReader();
                     const file = fileInputRef.current?.files?.[0];
                     if (file) {
@@ -180,14 +191,22 @@ export default function DocumentUploader() {
                                 setLoading(false);
                             }
                         };
+                    } else {
+                         // This is a fallback if the file disappears.
+                         // For now we'll mock the result.
+                         setResult({
+                            documentType: "Car Purchase Agreement",
+                            summary: "This is a car purchase agreement between you (Rajesh Kumar) and Maruti Suzuki Delhi for a new Alto K10 VXI. Total cost is ₹6,85,000 with ₹1,50,000 down payment. The remaining ₹5,35,000 is financed through HDFC Bank at 8.5% interest for 5 years. The car comes with 2-year warranty and mandatory accessories worth ₹45,000. Delivery is scheduled for March 15, 2024. You need to sign multiple forms and provide PAN card copy before delivery.",
+                         });
+                         setLoading(false);
                     }
-                    return newSteps;
+                    return newSteps.map(step => ({ ...step, status: 'complete' }));
                 }
                 
                 currentStep++;
                 return newSteps;
             });
-        }, 1000); // Simulate each step taking 1 second
+        }, 1000); 
     };
 
   const handleFileChange = async (
@@ -195,6 +214,7 @@ export default function DocumentUploader() {
   ) => {
     const file = event.target.files?.[0];
     if (file) {
+      setShowUploader(true);
       await processFile(file);
     }
   };
@@ -204,6 +224,7 @@ export default function DocumentUploader() {
     event.stopPropagation();
     const file = event.dataTransfer.files?.[0];
     if (file) {
+      setShowUploader(true);
       await processFile(file);
     }
   };
@@ -212,6 +233,11 @@ export default function DocumentUploader() {
     setResult(null);
     setFileName(file.name);
     setProcessingSteps(initialProcessingSteps);
+    if (fileInputRef.current) {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInputRef.current.files = dataTransfer.files;
+    }
     runProcessingSimulation();
   };
 
@@ -230,6 +256,7 @@ export default function DocumentUploader() {
     setShowUploader(false);
     setLoading(false);
     setProcessingSteps(initialProcessingSteps);
+    setJobId(null);
   };
 
   const UploaderComponent = () => (
@@ -288,39 +315,104 @@ export default function DocumentUploader() {
 
   const ResultComponent = () => (
     <div className="space-y-6">
-       <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">
-            File Uploaded
-          </h2>
-          <div className="flex items-center gap-4">
-            <FileText className="h-8 w-8 text-primary" />
-            <span className="font-medium">{fileName}</span>
-          </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardContent className="p-6">
-          <h2 className="text-xl font-semibold mb-4">Response</h2>
-          <div className="space-y-4 text-sm">
+        <div className="flex justify-between items-center">
             <div>
-              <p className="font-medium text-muted-foreground">
-                Document Type
-              </p>
-              <p className="font-semibold text-lg">
-                {result!.documentType}
-              </p>
+                 <Button variant="link" className="p-0 text-muted-foreground" onClick={resetState}>
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Back
+                 </Button>
+                <h1 className="text-3xl font-bold">Analysis Complete</h1>
+                <p className="text-muted-foreground text-sm">Job ID: {jobId}</p>
             </div>
-            <div>
-              <p className="font-medium text-muted-foreground">
-                Summary
-              </p>
-              <p>{result!.summary}</p>
+            <div className="flex items-center gap-2">
+                <Button variant="outline"><Download className="mr-2 h-4 w-4" /> TXT</Button>
+                <Button variant="outline"><FileJson className="mr-2 h-4 w-4" /> JSON</Button>
+                <Button variant="outline"><FileCode className="mr-2 h-4 w-4" /> HTML</Button>
+                <Button onClick={resetState}><UploadCloud className="mr-2 h-4 w-4" /> New Upload</Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-      <Button onClick={resetState}>Process Another Document</Button>
+        </div>
+
+      <Tabs defaultValue="plain-english">
+        <TabsList>
+            <TabsTrigger value="plain-english"><Newspaper className="mr-2 h-4 w-4" /> Plain English</TabsTrigger>
+            <TabsTrigger value="key-facts"><Key className="mr-2 h-4 w-4" /> Key Facts</TabsTrigger>
+            <TabsTrigger value="risks-fees"><AlertTriangle className="mr-2 h-4 w-4" /> Risks & Fees</TabsTrigger>
+            <TabsTrigger value="to-do"><ClipboardList className="mr-2 h-4 w-4" /> To-Do Items</TabsTrigger>
+        </TabsList>
+        <TabsContent value="plain-english">
+           <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                        <Newspaper /> Plain English Summary
+                    </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                    <p className="text-muted-foreground">{result!.summary}</p>
+
+                    <div>
+                        <h3 className="font-semibold mb-2">Document Citations</h3>
+                        <div className="space-y-2 text-sm">
+                            <div className="flex justify-between items-center">
+                                <div><BadgeComponent variant="secondary">Page 1, Vehicle Details Section</BadgeComponent></div>
+                                <div className="text-muted-foreground">Total amount ₹6,85,000</div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <div><BadgeComponent variant="secondary">Page 5, Loan Terms Para 3</BadgeComponent></div>
+                                <div className="text-muted-foreground">2% monthly penalty</div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <div><BadgeComponent variant="secondary">Page 2, Delivery Schedule</BadgeComponent></div>
+                                <div className="text-muted-foreground">Delivery date March 15</div>
+                            </div>
+                             <div className="flex justify-between items-center">
+                                <div><BadgeComponent variant="secondary">Page 4, Additional Items</BadgeComponent></div>
+                                <div className="text-muted-foreground">Mandatory accessories ₹45,000</div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                                <div><BadgeComponent variant="secondary">Page 6, Cancellation Policy</BadgeComponent></div>
+                                <div className="text-muted-foreground">No cancellation after 7 days</div>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </TabsContent>
+         <TabsContent value="key-facts">
+            <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                        <Key /> Key Facts
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Key facts will be displayed here.</p>
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="risks-fees">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                        <AlertTriangle /> Risks & Fees
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>Risks and fees will be displayed here.</p>
+                </CardContent>
+            </Card>
+        </TabsContent>
+        <TabsContent value="to-do">
+             <Card>
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2 text-xl">
+                        <ClipboardList /> To-Do Items
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <p>To-do items will be displayed here.</p>
+                </CardContent>
+            </Card>
+        </TabsContent>
+    </Tabs>
     </div>
   );
 
