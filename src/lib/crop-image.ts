@@ -21,7 +21,6 @@ export default async function getCroppedImg(
     return null;
   }
 
-  const { width, height } = image;
   canvas.width = pixelCrop.width;
   canvas.height = pixelCrop.height;
 
@@ -38,12 +37,6 @@ export default async function getCroppedImg(
   );
 
   return new Promise((resolve) => {
-    canvas.toBlob((blob) => {
-      if (!blob) {
-        console.error('Canvas is empty');
-        return;
-      }
-      resolve(URL.createObjectURL(blob));
-    }, 'image/jpeg');
+    resolve(canvas.toDataURL('image/jpeg'));
   });
 }
