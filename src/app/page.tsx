@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   UploadCloud,
   File,
@@ -11,6 +11,11 @@ import {
   Zap,
   BrainCircuit,
   ShieldCheck,
+  CheckCircle2,
+  FileClock,
+  Info,
+  CircleDot,
+  Badge,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,6 +24,7 @@ import {
   processDocument,
   type ProcessDocumentOutput,
 } from '@/ai/flows/document-processor';
+import { cn } from '@/lib/utils';
 
 function Logo() {
   return (
@@ -68,6 +74,66 @@ function FeatureCard({
   );
 }
 
+type ProcessingStepStatus = 'pending' | 'processing' | 'complete';
+
+interface ProcessingStep {
+  key: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  status: ProcessingStepStatus;
+}
+
+const initialProcessingSteps: ProcessingStep[] = [
+    { key: 'upload', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'Upload Complete', description: 'Files uploaded and validated', status: 'pending' },
+    { key: 'auto-clean', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'Auto-Clean', description: 'Deskewing images and splitting PDFs', status: 'pending' },
+    { key: 'ocr', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'OCR + Layout', description: 'Extracting text and detecting layout blocks', status: 'pending' },
+    { key: 'chunking', icon: <FileClock className="h-6 w-6 text-primary" />, title: 'Document Chunking', description: 'Splitting into logical sections', status: 'pending' },
+    { key: 'analysis', icon: <Info className="h-6 w-6 text-muted-foreground" />, title: 'AI Analysis', description: 'Generating summaries and extracting key facts', status: 'pending' },
+    { key: 'quality', icon: <CircleDot className="h-6 w-6 text-muted-foreground" />, title: 'Quality Review', description: 'Validating results and flagging uncertainties', status: 'pending' },
+];
+
+function ProcessingStatus({ steps }: { steps: ProcessingStep[] }) {
+    return (
+        <div className="space-y-4">
+            {steps.map((step) => (
+                <Card
+                    key={step.key}
+                    className={cn('transition-all', {
+                        'bg-green-500/10 border-green-500/20': step.status === 'complete',
+                        'border-primary ring-2 ring-primary/50': step.status === 'processing',
+                        'bg-card/50': step.status === 'pending',
+                    })}
+                >
+                    <CardContent className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div>
+                                {step.status === 'complete' ? <CheckCircle2 className="h-6 w-6 text-green-500" /> :
+                                 step.status === 'processing' ? <Loader2 className="h-6 w-6 animate-spin text-primary" /> :
+                                 step.icon}
+                            </div>
+                            <div>
+                                <p className="font-semibold">{step.title}</p>
+                                <p className="text-sm text-muted-foreground">{step.description}</p>
+                            </div>
+                        </div>
+                        <div
+                            className={cn('text-xs font-semibold rounded-full px-2 py-1', {
+                                'bg-green-500/20 text-green-500': step.status === 'complete',
+                                'bg-primary/20 text-primary': step.status === 'processing',
+                                'bg-muted/20 text-muted-foreground': step.status === 'pending',
+                            })}
+                        >
+                            {step.status.charAt(0).toUpperCase() + step.status.slice(1)}
+                            {step.status === 'processing' && '...'}
+                        </div>
+                    </CardContent>
+                </Card>
+            ))}
+        </div>
+    );
+}
+
 export default function DocumentUploader() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ProcessDocumentOutput | null>(null);
@@ -75,6 +141,54 @@ export default function DocumentUploader() {
   const [showUploader, setShowUploader] = useState(false);
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialProcessingSteps);
+
+  const runProcessingSimulation = () => {
+        setLoading(true);
+        let currentStep = 0;
+        const interval = setInterval(() => {
+            setProcessingSteps(prevSteps => {
+                const newSteps = [...prevSteps];
+                if (currentStep < newSteps.length) {
+                    if (currentStep > 0) {
+                        newSteps[currentStep - 1].status = 'complete';
+                    }
+                    newSteps[currentStep].status = 'processing';
+                }
+                
+                if (currentStep >= newSteps.length) {
+                    clearInterval(interval);
+                    // This is where you would call the actual AI processing
+                    // and then set the result. For now, we'll just simulate it.
+                    const reader = new FileReader();
+                    const file = fileInputRef.current?.files?.[0];
+                    if (file) {
+                        reader.readAsDataURL(file);
+                        reader.onload = async () => {
+                            const dataUri = reader.result as string;
+                            try {
+                                const response = await processDocument({ documentDataUri: dataUri });
+                                setResult(response);
+                            } catch (error) {
+                                console.error(error);
+                                toast({
+                                    variant: 'destructive',
+                                    title: 'An error occurred.',
+                                    description: 'Failed to process the document. Please try again.',
+                                });
+                            } finally {
+                                setLoading(false);
+                            }
+                        };
+                    }
+                    return newSteps;
+                }
+                
+                currentStep++;
+                return newSteps;
+            });
+        }, 1000); // Simulate each step taking 1 second
+    };
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
@@ -95,37 +209,10 @@ export default function DocumentUploader() {
   };
 
   const processFile = async (file: File) => {
-    setLoading(true);
     setResult(null);
     setFileName(file.name);
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = async () => {
-      const dataUri = reader.result as string;
-      try {
-        const response = await processDocument({ documentDataUri: dataUri });
-        setResult(response);
-      } catch (error) {
-        console.error(error);
-        toast({
-          variant: 'destructive',
-          title: 'An error occurred.',
-          description: 'Failed to process the document. Please try again.',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.onerror = (error) => {
-      console.error('Error reading file:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Error reading file.',
-        description: 'Could not read the selected file.',
-      });
-      setLoading(false);
-    };
+    setProcessingSteps(initialProcessingSteps);
+    runProcessingSimulation();
   };
 
   const handleBrowse = () => {
@@ -141,6 +228,8 @@ export default function DocumentUploader() {
     setResult(null);
     setFileName(null);
     setShowUploader(false);
+    setLoading(false);
+    setProcessingSteps(initialProcessingSteps);
   };
 
   const UploaderComponent = () => (
@@ -262,12 +351,7 @@ export default function DocumentUploader() {
         <div className="mx-auto max-w-4xl">
           {showUploader ? (
               <>
-              {loading && (
-                <div className="mt-8 text-center">
-                  <Loader2 className="mx-auto h-8 w-8 animate-spin text-primary" />
-                  <p className="mt-2">Processing {fileName || 'document'}...</p>
-                </div>
-              )}
+              {loading && !result && <ProcessingStatus steps={processingSteps} />}
               {!loading && !result && <UploaderComponent />}
               {!loading && result && <ResultComponent />}
               </>
