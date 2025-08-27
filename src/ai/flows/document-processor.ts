@@ -44,7 +44,9 @@ const prompt = ai.definePrompt({
   name: 'processDocumentPrompt',
   input: {schema: ProcessDocumentInputSchema},
   output: {schema: ProcessDocumentOutputSchema},
-  prompt: `You are a document intelligence expert specializing in vehicle purchase agreements and related legal documents. Your primary goal is to help users understand these complex documents. Analyze the following document and perform these tasks:
+  prompt: `You are a document intelligence expert specializing in vehicle purchase agreements and related legal documents from around the world. Your primary goal is to help users understand these complex documents, regardless of the original language. Analyze the following document and perform these tasks:
+
+First, identify the primary language of the document. If it is not in English, translate the key sections and important terms into English to facilitate your analysis.
 
 1.  **Identify Document Type**: Determine the specific type of document (e.g., 'Vehicle Sales Agreement', 'Auto Loan Contract', 'Bill of Sale', 'Lease Agreement').
 2.  **Summarize**: Provide a concise, easy-to-understand summary of the document's main purpose and content in plain English. Start by stating what the document is for.
@@ -52,7 +54,7 @@ const prompt = ai.definePrompt({
 4.  **Identify Risks & Fees**: Scrutinize the document for any potential risks, hidden fees, or penalties. This includes things like prepayment penalties, late payment fees, high interest rates, unfavorable warranty clauses, or any terms that seem disadvantageous to the buyer.
 5.  **Create To-Do Items**: Extract any actionable items, deadlines, or required follow-ups for the user. For example: 'Submit proof of insurance by YYYY-MM-DD', 'Make first payment by YYYY-MM-DD', 'Complete vehicle registration at the DMV'.
 
-For every extracted fact, risk, fee, and to-do item, you must provide a specific citation pointing to its location in the document (e.g., "Page 3, Section 4.2" or "Loan Terms, Paragraph 2"). If the document is not in English or is illegible, state that you cannot process it.
+For every extracted fact, risk, fee, and to-do item, you must provide a specific citation pointing to its location in the document (e.g., "Page 3, Section 4.2" or "Loan Terms, Paragraph 2"). If the document is illegible or you cannot confidently translate and analyze it, state that you cannot process it and explain why.
 
 Document: {{media url=documentDataUri}}`,
 });
