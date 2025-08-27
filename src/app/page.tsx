@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
@@ -106,12 +107,10 @@ interface ProcessingStep {
 }
 
 const initialProcessingSteps: ProcessingStep[] = [
-    { key: 'upload', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'Upload Complete', description: 'Files uploaded and validated', status: 'pending' },
-    { key: 'auto-clean', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'Auto-Clean', description: 'Deskewing images and splitting PDFs', status: 'pending' },
-    { key: 'ocr', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'OCR + Layout', description: 'Extracting text and detecting layout blocks', status: 'pending' },
-    { key: 'chunking', icon: <FileClock className="h-6 w-6 text-primary" />, title: 'Document Chunking', description: 'Splitting into logical sections', status: 'pending' },
-    { key: 'analysis', icon: <Info className="h-6 w-6 text-muted-foreground" />, title: 'AI Analysis', description: 'Generating summaries and extracting key facts', status: 'pending' },
-    { key: 'quality', icon: <CircleDot className="h-6 w-6 text-muted-foreground" />, title: 'Quality Review', description: 'Validating results and flagging uncertainties', status: 'pending' },
+    { key: 'upload', icon: <CheckCircle2 className="h-6 w-6 text-green-500" />, title: 'Upload Complete', description: 'Your document has been uploaded.', status: 'pending' },
+    { key: 'ocr', icon: <FileClock className="h-6 w-6 text-primary" />, title: 'Processing Document', description: 'Extracting text and detecting layout.', status: 'pending' },
+    { key: 'analysis', icon: <BrainCircuit className="h-6 w-6 text-primary" />, title: 'AI Analysis', description: 'Generating summaries and extracting key facts.', status: 'pending' },
+    { key: 'quality', icon: <CircleDot className="h-6 w-6 text-muted-foreground" />, title: 'Finalizing', description: 'Validating results and preparing your report.', status: 'pending' },
 ];
 
 function ProcessingStatus({ steps }: { steps: ProcessingStep[] }) {
@@ -340,78 +339,77 @@ export default function DocumentUploader() {
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialProcessingSteps);
   const [jobId, setJobId] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
-  const simulationIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-
-  const runProcessingSimulation = (dataUri: string, name: string) => {
+  const startAnalysis = async (dataUri: string, name: string) => {
     setFileName(name);
-    setProcessingSteps(initialProcessingSteps);
-    setLoading(true);
-    setShowUploader(true);
     setResult(null);
+    setShowUploader(true);
+    setLoading(true);
+    setProcessingSteps(initialProcessingSteps);
     setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
 
-    // Start UI simulation
-    let currentStep = 0;
-    simulationIntervalRef.current = setInterval(() => {
-      if (currentStep >= initialProcessingSteps.length) {
-        if (simulationIntervalRef.current) {
-          clearInterval(simulationIntervalRef.current);
-        }
-        return;
-      }
-      setProcessingSteps(prevSteps => {
-        const newSteps = [...prevSteps];
-        if (currentStep > 0) {
-            newSteps[currentStep - 1].status = 'complete';
-        }
-        if (currentStep < newSteps.length) {
-          newSteps[currentStep].status = 'processing';
-        }
-        return newSteps;
-      });
-      currentStep++;
-    }, 250);
+    // --- Real-time UI updates ---
 
-    // Start AI analysis in parallel
-    processDocument({ documentDataUri: dataUri })
-      .then(analysisResult => {
-        if (simulationIntervalRef.current) {
-          clearInterval(simulationIntervalRef.current);
-        }
+    // Step 1: Immediately show "Upload Complete"
+    setProcessingSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[0].status = 'complete';
+        newSteps[1].status = 'processing'; // Start "Processing Document"
+        return newSteps;
+    });
+
+    // Short delay for visual feedback on "Processing"
+    await new Promise(resolve => setTimeout(resolve, 500)); 
+
+    setProcessingSteps(prev => {
+        const newSteps = [...prev];
+        newSteps[1].status = 'complete';
+        newSteps[2].status = 'processing'; // Move to "AI Analysis"
+        return newSteps;
+    });
+    
+    // --- AI Call ---
+    try {
+        const analysisResult = await processDocument({ documentDataUri: dataUri });
         setResult(analysisResult);
-        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
-      })
-      .catch(error => {
-        if (simulationIntervalRef.current) {
-          clearInterval(simulationIntervalRef.current);
-        }
-        console.error(error);
-        toast({
-          variant: 'destructive',
-          title: 'An error occurred.',
-          description: 'Failed to process the document. Please try again.',
+        
+        // Final step: Complete the UI
+        setProcessingSteps(prev => {
+            const newSteps = [...prev];
+            newSteps[2].status = 'complete';
+            newSteps[3].status = 'processing'; // "Finalizing"
+            return newSteps;
         });
-        resetState();
-      })
-      .finally(() => {
+
+        await new Promise(resolve => setTimeout(resolve, 250));
+
+        setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
+
+    } catch (error) {
+        console.error("AI Analysis failed:", error);
+        toast({
+            variant: 'destructive',
+            title: 'An error occurred.',
+            description: 'Failed to process the document. Please try again.',
+        });
+        resetState(); // Reset on error
+    } finally {
         setLoading(false);
-      });
+    }
   };
 
 
   const processFile = async (file: File) => {
-    setResult(null);
     const reader = new FileReader();
     reader.readAsDataURL(file);
     reader.onload = () => {
         const dataUri = reader.result as string;
-        runProcessingSimulation(dataUri, file.name);
+        startAnalysis(dataUri, file.name);
     };
   };
   
   const handlePhotoTaken = (dataUri: string) => {
-    runProcessingSimulation(dataUri, `photo_${Date.now()}.jpg`);
+    startAnalysis(dataUri, `photo_${Date.now()}.jpg`);
   };
 
   const handleFileChange = async (
@@ -442,9 +440,6 @@ export default function DocumentUploader() {
   };
 
   const resetState = () => {
-    if (simulationIntervalRef.current) {
-      clearInterval(simulationIntervalRef.current);
-    }
     setResult(null);
     setFileName(null);
     setLoading(false);
@@ -679,7 +674,7 @@ export default function DocumentUploader() {
           {showUploader ? (
               <>
               {(loading || result) ? null : <UploaderComponent />}
-              {loading && !result && <ProcessingStatus steps={processingSteps} />}
+              {loading && <ProcessingStatus steps={processingSteps} />}
               {!loading && result && <ResultComponent />}
               </>
           ) : (
@@ -732,3 +727,5 @@ export default function DocumentUploader() {
     </div>
   );
 }
+
+    
