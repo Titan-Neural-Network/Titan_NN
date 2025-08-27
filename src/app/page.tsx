@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
   UploadCloud,
@@ -25,7 +25,11 @@ import {
   ClipboardList,
   Newspaper,
   Database,
+  Crop,
+  Check,
 } from 'lucide-react';
+import Cropper from 'react-easy-crop';
+import type { Point, Area } from 'react-easy-crop';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +40,9 @@ import {
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge as BadgeComponent } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Slider } from '@/components/ui/slider';
+import getCroppedImg from '@/lib/crop-image';
 
 
 function Logo() {
@@ -146,6 +153,160 @@ function ProcessingStatus({ steps }: { steps: ProcessingStep[] }) {
     );
 }
 
+function CameraComponent({
+  open,
+  onClose,
+  onPhotoTaken,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onPhotoTaken: (dataUri: string) => void;
+}) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    let stream: MediaStream | null = null;
+    const getCameraPermission = async () => {
+      if (!open) return;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        setHasCameraPermission(true);
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        setHasCameraPermission(false);
+        toast({
+          variant: 'destructive',
+          title: 'Camera Access Denied',
+          description: 'Please enable camera permissions in your browser settings to use this feature.',
+        });
+        onClose();
+      }
+    };
+    getCameraPermission();
+
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [open, onClose, toast]);
+
+  const handleCapture = () => {
+    if (videoRef.current) {
+      const canvas = document.createElement('canvas');
+      canvas.width = videoRef.current.videoWidth;
+      canvas.height = videoRef.current.videoHeight;
+      const context = canvas.getContext('2d');
+      if (context) {
+        context.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+        setCapturedImage(canvas.toDataURL('image/jpeg'));
+      }
+    }
+  };
+
+  const onCropComplete = useCallback((croppedArea: Area, croppedAreaPixels: Area) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCrop = async () => {
+    if (capturedImage && croppedAreaPixels) {
+      try {
+        const croppedImage = await getCroppedImg(capturedImage, croppedAreaPixels);
+        if (croppedImage) {
+          onPhotoTaken(croppedImage);
+          resetAndClose();
+        }
+      } catch (e) {
+        console.error(e);
+        toast({
+            variant: 'destructive',
+            title: 'Error Cropping Image',
+            description: 'Could not crop the image. Please try again.',
+        });
+      }
+    }
+  };
+
+  const resetAndClose = () => {
+    setCapturedImage(null);
+    setCrop({ x: 0, y: 0 });
+    setZoom(1);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && resetAndClose()}>
+      <DialogContent className="max-w-4xl h-[90vh] flex flex-col">
+        <DialogHeader>
+          <DialogTitle>{capturedImage ? 'Crop Your Photo' : 'Take a Photo'}</DialogTitle>
+        </DialogHeader>
+        <div className="flex-1 relative">
+          {capturedImage ? (
+            <div className="relative w-full h-full">
+              <Cropper
+                image={capturedImage}
+                crop={crop}
+                zoom={zoom}
+                aspect={4 / 3}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onCropComplete={onCropComplete}
+              />
+            </div>
+          ) : (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover rounded-md"
+              autoPlay
+              muted
+              playsInline
+            />
+          )}
+        </div>
+        {capturedImage && (
+            <div className="flex items-center gap-4 p-4">
+                <Crop className="w-5 h-5" />
+                <Slider
+                    value={[zoom]}
+                    min={1}
+                    max={3}
+                    step={0.1}
+                    onValueChange={(value) => setZoom(value[0])}
+                />
+            </div>
+        )}
+        <DialogFooter>
+          {capturedImage ? (
+            <>
+              <Button variant="outline" onClick={() => setCapturedImage(null)}>
+                Retake
+              </Button>
+              <Button onClick={handleCrop}>
+                <Check className="mr-2" />
+                Use Photo
+              </Button>
+            </>
+          ) : (
+            <Button onClick={handleCapture} disabled={!hasCameraPermission}>
+              <Camera className="mr-2" />
+              Capture
+            </Button>
+          )}
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export default function DocumentUploader() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ProcessDocumentOutput | null>(null);
@@ -155,67 +316,72 @@ export default function DocumentUploader() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [processingSteps, setProcessingSteps] = useState<ProcessingStep[]>(initialProcessingSteps);
   const [jobId, setJobId] = useState<string | null>(null);
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  const runProcessingSimulation = () => {
-        setLoading(true);
-        setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
-        let currentStep = 0;
-        const interval = setInterval(() => {
-            setProcessingSteps(prevSteps => {
-                const newSteps = [...prevSteps];
-                if (currentStep < newSteps.length) {
-                    if (currentStep > 0) {
-                        newSteps[currentStep - 1].status = 'complete';
-                    }
-                    newSteps[currentStep].status = 'processing';
+
+  const runProcessingSimulation = (dataUri: string, name: string) => {
+    setFileName(name);
+    setProcessingSteps(initialProcessingSteps);
+    setLoading(true);
+    setShowUploader(true);
+    setJobId(`job_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`);
+    let currentStep = 0;
+    const interval = setInterval(() => {
+        setProcessingSteps(prevSteps => {
+            const newSteps = [...prevSteps];
+            if (currentStep < newSteps.length) {
+                if (currentStep > 0) {
+                    newSteps[currentStep - 1].status = 'complete';
                 }
-                
-                if (currentStep >= newSteps.length) {
-                    clearInterval(interval);
-                    const reader = new FileReader();
-                    const file = fileInputRef.current?.files?.[0];
-                    if (file) {
-                        reader.readAsDataURL(file);
-                        reader.onload = async () => {
-                            const dataUri = reader.result as string;
-                            try {
-                                const response = await processDocument({ documentDataUri: dataUri });
-                                setResult(response);
-                            } catch (error) {
-                                console.error(error);
-                                toast({
-                                    variant: 'destructive',
-                                    title: 'An error occurred.',
-                                    description: 'Failed to process the document. Please try again.',
-                                });
-                            } finally {
-                                setLoading(false);
-                            }
-                        };
-                    } else {
-                         // This is a fallback if the file disappears.
-                         // For now we'll mock the result.
-                         setResult({
-                            documentType: "Car Purchase Agreement",
-                            summary: "This is a car purchase agreement between you (Rajesh Kumar) and Maruti Suzuki Delhi for a new Alto K10 VXI. Total cost is ₹6,85,000 with ₹1,50,000 down payment. The remaining ₹5,35,000 is financed through HDFC Bank at 8.5% interest for 5 years. The car comes with 2-year warranty and mandatory accessories worth ₹45,000. Delivery is scheduled for March 15, 2024. You need to sign multiple forms and provide PAN card copy before delivery.",
-                         });
-                         setLoading(false);
+                newSteps[currentStep].status = 'processing';
+            }
+            
+            if (currentStep >= newSteps.length) {
+                clearInterval(interval);
+                (async () => {
+                    try {
+                        const response = await processDocument({ documentDataUri: dataUri });
+                        setResult(response);
+                    } catch (error) {
+                        console.error(error);
+                        toast({
+                            variant: 'destructive',
+                            title: 'An error occurred.',
+                            description: 'Failed to process the document. Please try again.',
+                        });
+                    } finally {
+                        setLoading(false);
                     }
-                    return newSteps.map(step => ({ ...step, status: 'complete' }));
-                }
-                
-                currentStep++;
-                return newSteps;
-            });
-        }, 1000); 
+                })();
+                return newSteps.map(step => ({ ...step, status: 'complete' }));
+            }
+            
+            currentStep++;
+            return newSteps;
+        });
+    }, 1000); 
+  };
+
+
+  const processFile = async (file: File) => {
+    setResult(null);
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+        const dataUri = reader.result as string;
+        runProcessingSimulation(dataUri, file.name);
     };
+  };
+  
+  const handlePhotoTaken = (dataUri: string) => {
+    runProcessingSimulation(dataUri, `photo_${Date.now()}.jpg`);
+  };
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = event.target.files?.[0];
     if (file) {
-      setShowUploader(true);
       await processFile(file);
     }
   };
@@ -225,21 +391,8 @@ export default function DocumentUploader() {
     event.stopPropagation();
     const file = event.dataTransfer.files?.[0];
     if (file) {
-      setShowUploader(true);
       await processFile(file);
     }
-  };
-
-  const processFile = async (file: File) => {
-    setResult(null);
-    setFileName(file.name);
-    setProcessingSteps(initialProcessingSteps);
-    if (fileInputRef.current) {
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(file);
-        fileInputRef.current.files = dataTransfer.files;
-    }
-    runProcessingSimulation();
   };
 
   const handleBrowse = () => {
@@ -293,7 +446,7 @@ export default function DocumentUploader() {
                 <File className="mr-2" />
                 Browse Files
               </Button>
-              <Button variant="secondary" disabled={true}>
+              <Button variant="secondary" onClick={() => setIsCameraOpen(true)} disabled={loading}>
                 <Camera className="mr-2" />
                 Take Photo
               </Button>
@@ -443,8 +596,8 @@ export default function DocumentUploader() {
         <div className="mx-auto max-w-4xl">
           {showUploader ? (
               <>
+              {(loading || result) ? null : <UploaderComponent />}
               {loading && !result && <ProcessingStatus steps={processingSteps} />}
-              {!loading && !result && <UploaderComponent />}
               {!loading && result && <ResultComponent />}
               </>
           ) : (
@@ -493,6 +646,7 @@ export default function DocumentUploader() {
           )}
         </div>
       </main>
+      <CameraComponent open={isCameraOpen} onClose={() => setIsCameraOpen(false)} onPhotoTaken={handlePhotoTaken} />
     </div>
   );
 }
