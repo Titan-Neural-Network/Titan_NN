@@ -363,8 +363,7 @@ export default function DocumentUploader() {
 
     let currentStep = 0;
     const interval = setInterval(() => {
-      const allStepsComplete = currentStep >= initialProcessingSteps.length;
-
+      // If we have a result, clear interval and show it.
       if (analysisResult) {
         clearInterval(interval);
         setLoading(false);
@@ -372,37 +371,42 @@ export default function DocumentUploader() {
         setProcessingSteps(prev => prev.map(s => ({ ...s, status: 'complete' })));
         return;
       }
-
-      if (allStepsComplete) {
+      
+      // If we have an error, clear interval and show it.
+      if (analysisError) {
         clearInterval(interval);
-        if (analysisError) {
-          console.error(analysisError);
-          toast({
-            variant: 'destructive',
-            title: 'An error occurred.',
-            description: 'Failed to process the document. Please try again.',
-          });
-          resetState();
-        } else {
-            // This case handles if the simulation finishes but the result is not yet available.
-            // We just stop the simulation interval and the next check will handle it.
-        }
+        console.error(analysisError);
+        toast({
+          variant: 'destructive',
+          title: 'An error occurred.',
+          description: 'Failed to process the document. Please try again.',
+        });
+        resetState();
+        return;
+      }
+
+      // If simulation is over but no result/error yet, just stop the simulation.
+      // The next check on the next interval will catch the result/error.
+      if (currentStep >= initialProcessingSteps.length) {
+        clearInterval(interval);
         return;
       }
       
-      if (currentStep < initialProcessingSteps.length) {
-          setProcessingSteps(prevSteps => {
-              const newSteps = [...prevSteps];
-              if (currentStep > 0) {
-                  newSteps[currentStep - 1].status = 'complete';
-              }
-              newSteps[currentStep].status = 'processing';
-              return newSteps;
-          });
-          currentStep++;
-      }
+      // Animate the next step
+      setProcessingSteps(prevSteps => {
+        const newSteps = [...prevSteps];
+        if (currentStep > 0) {
+            newSteps[currentStep - 1].status = 'complete';
+        }
+        if (currentStep < newSteps.length) {
+          newSteps[currentStep].status = 'processing';
+        }
+        return newSteps;
+      });
+      currentStep++;
+
     }, 250);
-};
+  };
 
 
   const processFile = async (file: File) => {
@@ -450,10 +454,9 @@ export default function DocumentUploader() {
     setResult(null);
     setFileName(null);
     setLoading(false);
+    setShowUploader(false);
     setProcessingSteps(initialProcessingSteps);
     setJobId(null);
-    // Setting showUploader back to true to stay on the uploader screen
-    setShowUploader(true); 
   };
 
   const UploaderComponent = () => (
