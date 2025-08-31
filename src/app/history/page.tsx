@@ -21,7 +21,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import Link from 'next/link';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
+import { ThemeToggle } from '@/components/theme-toggle';
 
 function Logo() {
   return (
@@ -56,7 +57,8 @@ export default function HistoryPage() {
     <div className="flex min-h-screen w-full flex-col bg-background text-foreground">
       <header className="flex h-16 shrink-0 items-center justify-between border-b px-4 md:px-6">
         <div className="flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2">
+          <ThemeToggle />
+          <Link href="/" className="hidden items-center gap-2 sm:flex">
             <Logo />
             <span className="sr-only">Titan Neural Network</span>
           </Link>
@@ -85,16 +87,16 @@ export default function HistoryPage() {
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
-                <div className="sr-only">A list of links to navigate the site.</div>
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription className="sr-only">A list of links to navigate the site.</SheetDescription>
             </SheetHeader>
-            <nav className="grid gap-6 text-lg font-medium">
+            <nav className="grid gap-6 text-lg font-medium mt-4">
               <Link
                 href="#"
                 className="flex items-center gap-2 text-lg font-semibold"
               >
                 <Logo />
-                <span className="sr-only">Titan Neural Network</span>
+                <span>Titan Neural Network</span>
               </Link>
               <Link href="/" className="text-muted-foreground">
                 Home
