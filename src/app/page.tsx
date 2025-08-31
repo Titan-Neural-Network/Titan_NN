@@ -646,7 +646,7 @@ export default function DocumentUploader() {
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                <SheetTitle>Navigation</SheetTitle>
                 <div className="sr-only">A list of links to navigate the site.</div>
             </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
@@ -689,7 +689,7 @@ export default function DocumentUploader() {
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
                 Transform complex car purchase documents into clear, actionable insights. Our AI extracts key facts, identifies risks, and highlights what you need to do next.
               </p>
-              <div className="mt-8 flex justify-center gap-4">
+              <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
                 <Button size="lg" onClick={() => setShowUploader(true)}>
                   <UploadCloud className="mr-2"/>
                   Upload Documents
