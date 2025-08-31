@@ -41,6 +41,7 @@ import {
 } from '@/ai/flows/document-processor';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Badge as BadgeComponent } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
@@ -520,41 +521,118 @@ export default function DocumentUploader() {
         </div>
       </div>
 
-      <Tabs defaultValue="plain-english">
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
-          <TabsTrigger value="plain-english">
-            <Newspaper className="mr-2 h-4 w-4" /> Plain English
-          </TabsTrigger>
-          <TabsTrigger value="key-facts">
-            <Key className="mr-2 h-4 w-4" /> Key Facts
-          </TabsTrigger>
-          <TabsTrigger value="risks-fees">
-            <AlertTriangle className="mr-2 h-4 w-4" /> Risks & Fees
-          </TabsTrigger>
-          <TabsTrigger value="to-do">
-            <ClipboardList className="mr-2 h-4 w-4" /> To-Do Items
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="plain-english">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+      {/* Desktop: Tabs */}
+      <div className="hidden md:block">
+        <Tabs defaultValue="plain-english">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="plain-english">
+              <Newspaper className="mr-2 h-4 w-4" /> Plain English
+            </TabsTrigger>
+            <TabsTrigger value="key-facts">
+              <Key className="mr-2 h-4 w-4" /> Key Facts
+            </TabsTrigger>
+            <TabsTrigger value="risks-fees">
+              <AlertTriangle className="mr-2 h-4 w-4" /> Risks & Fees
+            </TabsTrigger>
+            <TabsTrigger value="to-do">
+              <ClipboardList className="mr-2 h-4 w-4" /> To-Do Items
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="plain-english">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Newspaper /> Plain English Summary
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">{result!.summary}</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="key-facts">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <Key /> Key Facts
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {result!.keyFacts.length > 0 ? (
+                  <div className="space-y-2 text-sm">
+                    {result!.keyFacts.map((fact, index) => (
+                      <CitationItem key={index} text={fact.fact} citation={fact.citation} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No key facts were extracted.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="risks-fees">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <AlertTriangle /> Risks & Fees
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {result!.risksAndFees.length > 0 ? (
+                  <div className="space-y-2 text-sm">
+                    {result!.risksAndFees.map((risk, index) => (
+                       <CitationItem key={index} text={risk.description} citation={risk.citation} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No risks or fees were identified.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="to-do">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                  <ClipboardList /> To-Do Items
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {result!.toDoItems.length > 0 ? (
+                  <div className="space-y-2 text-sm">
+                    {result!.toDoItems.map((item, index) => (
+                      <CitationItem key={index} text={item.item} citation={item.citation} />
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No to-do items were found.</p>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+
+      {/* Mobile: Accordion */}
+      <div className="md:hidden">
+        <Accordion type="single" collapsible defaultValue="plain-english" className="w-full space-y-4">
+          <AccordionItem value="plain-english" className="border rounded-lg">
+            <AccordionTrigger className="p-4 font-semibold text-lg hover:no-underline">
+              <div className="flex items-center gap-2">
                 <Newspaper /> Plain English Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-4 pt-0">
               <p className="text-muted-foreground">{result!.summary}</p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="key-facts">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="key-facts" className="border rounded-lg">
+            <AccordionTrigger className="p-4 font-semibold text-lg hover:no-underline">
+              <div className="flex items-center gap-2">
                 <Key /> Key Facts
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-4 pt-0">
               {result!.keyFacts.length > 0 ? (
                 <div className="space-y-2 text-sm">
                   {result!.keyFacts.map((fact, index) => (
@@ -564,17 +642,15 @@ export default function DocumentUploader() {
               ) : (
                 <p className="text-muted-foreground">No key facts were extracted.</p>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="risks-fees">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="risks-fees" className="border rounded-lg">
+            <AccordionTrigger className="p-4 font-semibold text-lg hover:no-underline">
+              <div className="flex items-center gap-2">
                 <AlertTriangle /> Risks & Fees
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-4 pt-0">
               {result!.risksAndFees.length > 0 ? (
                 <div className="space-y-2 text-sm">
                   {result!.risksAndFees.map((risk, index) => (
@@ -584,17 +660,15 @@ export default function DocumentUploader() {
               ) : (
                 <p className="text-muted-foreground">No risks or fees were identified.</p>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-        <TabsContent value="to-do">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-xl">
+            </AccordionContent>
+          </AccordionItem>
+          <AccordionItem value="to-do" className="border-b-0 border rounded-lg">
+            <AccordionTrigger className="p-4 font-semibold text-lg hover:no-underline">
+              <div className="flex items-center gap-2">
                 <ClipboardList /> To-Do Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="p-4 pt-0">
               {result!.toDoItems.length > 0 ? (
                 <div className="space-y-2 text-sm">
                   {result!.toDoItems.map((item, index) => (
@@ -604,10 +678,10 @@ export default function DocumentUploader() {
               ) : (
                 <p className="text-muted-foreground">No to-do items were found.</p>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+      </div>
     </div>
   );
 
@@ -646,7 +720,7 @@ export default function DocumentUploader() {
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="sr-only">A list of links to navigate the site.</div>
             </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
