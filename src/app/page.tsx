@@ -459,7 +459,7 @@ export default function DocumentUploader() {
           Upload Documents
         </h1>
         <p className="mt-2 text-muted-foreground">
-          Drag and drop your car purchase documents or click to browse.
+          Drag and drop your legal documents or click to browse.
           We support PDFs and images (PNG, JPG, JPEG, WebP).
         </p>
       </div>
@@ -646,7 +646,7 @@ export default function DocumentUploader() {
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
-                <SheetTitle>Navigation</SheetTitle>
+                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
                 <div className="sr-only">A list of links to navigate the site.</div>
             </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
@@ -687,7 +687,7 @@ export default function DocumentUploader() {
                 <span className="text-primary">Document Clarity</span>
               </h1>
               <p className="mt-4 max-w-2xl mx-auto text-muted-foreground md:text-lg">
-                Transform complex car purchase documents into clear, actionable insights. Our AI extracts key facts, identifies risks, and highlights what you need to do next.
+                Transform complex legal documents into clear, actionable insights. Our AI extracts key facts, identifies risks, and highlights what you need to do next.
               </p>
               <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
                 <Button size="lg" onClick={() => setShowUploader(true)}>
