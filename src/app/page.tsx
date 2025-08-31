@@ -669,7 +669,7 @@ export default function DocumentUploader() {
       </header>
 
       <main className="flex-1 container mx-auto px-4 py-8 md:px-6 lg:py-12">
-        <div className="mx-auto max-w-4xl">
+        <div className="mx-auto max-w-4xl px-4">
           {showUploader ? (
               <>
               {(loading || result) ? null : <UploaderComponent />}
