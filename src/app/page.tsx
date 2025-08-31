@@ -480,7 +480,7 @@ export default function DocumentUploader() {
                 Drag &amp; drop files here, or click to browse
               </p>
             </div>
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Button onClick={handleBrowse} disabled={loading}>
                 <File className="mr-2" />
                 Browse Files
@@ -646,7 +646,7 @@ export default function DocumentUploader() {
           </SheetTrigger>
           <SheetContent side="left">
             <SheetHeader>
-                <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+                <SheetTitle>Navigation</SheetTitle>
                 <div className="sr-only">A list of links to navigate the site.</div>
             </SheetHeader>
             <nav className="grid gap-6 text-lg font-medium">
