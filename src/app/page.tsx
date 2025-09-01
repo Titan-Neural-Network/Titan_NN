@@ -342,22 +342,6 @@ export default function DocumentUploader() {
   const [jobId, setJobId] = useState<string | null>(null);
   const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-  // Keep-alive logic to prevent the development session from timing out.
-  useEffect(() => {
-    const keepAliveInterval = setInterval(() => {
-      // This fetch request is designed to simulate activity.
-      // It doesn't matter if it succeeds or fails.
-      console.log('Sending keep-alive request to prevent session timeout.');
-      fetch('/api/keep-alive').catch(() => {
-        // We can ignore errors, the goal is just to generate network traffic.
-      });
-    }, 60000); // Run every 60 seconds
-
-    return () => {
-      clearInterval(keepAliveInterval);
-    };
-  }, []);
-
   const startAnalysis = async (dataUri: string, name: string) => {
     setFileName(name);
     setResult(null);
@@ -753,7 +737,7 @@ export default function DocumentUploader() {
               {!loading && result && <ResultComponent />}
               </>
           ) : (
-            <div className="text-center px-4">
+            <div className="text-center">
               <div className="inline-block p-3 mb-4 bg-primary/10 rounded-lg">
                  <BrainCircuit className="w-8 h-8 text-primary" />
               </div>
