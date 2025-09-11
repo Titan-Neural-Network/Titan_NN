@@ -176,7 +176,14 @@ function CameraComponent({
   useEffect(() => {
     let stream: MediaStream | null = null;
     const getCameraPermission = async () => {
-      if (!open) return;
+      if (!open) {
+        // Stop any existing stream if the dialog is closed
+        if (videoRef.current?.srcObject) {
+            (videoRef.current.srcObject as MediaStream).getTracks().forEach((track) => track.stop());
+            videoRef.current.srcObject = null;
+        }
+        return;
+      }
       const videoConstraints: MediaStreamConstraints['video'] = {
         facingMode: 'environment' 
       };
@@ -205,6 +212,7 @@ function CameraComponent({
         videoRef.current.srcObject = stream;
       }
     };
+
     getCameraPermission();
 
     return () => {
